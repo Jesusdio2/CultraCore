@@ -16,11 +16,6 @@ jobs:
         sudo apt update
         sudo apt install build-essential genisoimage gcc curl
 
-    - name: Descargar isolinux.bin manualmente
-      run: |
-        mkdir -p isolinux
-        curl -L -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
-
     - name: Compilar init, shell y bootanim
       run: |
         mkdir -p system/bin
@@ -36,8 +31,16 @@ jobs:
         cp system/bin/* iso_root/bin/
         echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
 
-    - name: Crear imagen ISO con kernel
+    - name: Descargar isolinux.bin y crear ISO
       run: |
+        mkdir -p isolinux
+        curl -L --fail -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
+
+        if [ ! -s isolinux/isolinux.bin ]; then
+          echo "❌ isolinux.bin no se descargó correctamente."
+          exit 1
+        fi
+
         genisoimage -o cultracore_x64.iso \
           -b isolinux/isolinux.bin \
           -c boot.cat \

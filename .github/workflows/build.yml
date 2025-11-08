@@ -14,10 +14,21 @@ jobs:
     - name: Clonar CultraCore
       uses: actions/checkout@v3
 
+    - name: Clonar kernel_common
+      run: |
+        git clone https://github.com/tuusuario/kernel_common.git kernel_common
+
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install build-essential genisoimage
+        sudo apt install build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev
+
+    - name: Compilar kernel (bzImage)
+      working-directory: kernel_common
+      run: |
+        make defconfig
+        make -j$(nproc)
+        cp arch/x86/boot/bzImage ../system/boot/bzImage
 
     - name: Compilar init, shell y bootanim
       run: |
@@ -26,12 +37,23 @@ jobs:
         gcc src/shell.c -o system/bin/shell
         gcc src/bootanim.c -o system/bin/bootanim
 
-    - name: Crear imagen ISO para VirtualBox
+    - name: Crear estructura ISO
       run: |
+        mkdir -p iso_root/boot
         mkdir -p iso_root/bin
+        cp system/boot/bzImage iso_root/boot/
         cp system/bin/* iso_root/bin/
-        echo "CultraCore boot ISO" > iso_root/README.txt
-        genisoimage -o cultracore_x64.iso -b README.txt -no-emul-boot -boot-load-size 4 -boot-info-table iso_root
+        echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
+
+    - name: Crear imagen ISO con kernel
+      run: |
+        mkdir -p isolinux
+        cp /usr/lib/ISOLINUX/isolinux.bin isolinux/
+        genisoimage -o cultracore_x64.iso \
+          -b isolinux/isolinux.bin \
+          -c boot.cat \
+          -no-emul-boot -boot-load-size 4 -boot-info-table \
+          -iso-level 3 -J -R iso_root
 
     - name: Subir artefacto
       uses: actions/upload-artifact@v4

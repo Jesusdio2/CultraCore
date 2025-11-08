@@ -14,7 +14,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install build-essential genisoimage gcc curl
+        sudo apt install build-essential genisoimage gcc curl dpkg
 
     - name: Compilar init, shell y bootanim
       run: |
@@ -31,13 +31,15 @@ jobs:
         cp system/bin/* iso_root/bin/
         echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
 
-    - name: Descargar isolinux.bin y crear ISO
+    - name: Obtener isolinux.bin desde paquete Debian
       run: |
         mkdir -p isolinux
-        curl -L --fail -o isolinux/isolinux.bin https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux.bin
+        curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg-1.3_all.deb
+        dpkg-deb -x isolinux.deb isolinux/
+        cp isolinux/usr/lib/syslinux/isolinux.bin isolinux/
 
         if [ ! -s isolinux/isolinux.bin ]; then
-          echo "❌ isolinux.bin no se descargó correctamente."
+          echo "❌ isolinux.bin no se extrajo correctamente."
           exit 1
         fi
 

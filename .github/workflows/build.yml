@@ -1,1 +1,40 @@
+name: Build CultraCore x86_64
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-x64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar CultraCore
+      uses: actions/checkout@v3
+
+    - name: Instalar dependencias
+      run: |
+        sudo apt update
+        sudo apt install build-essential
+
+    - name: Compilar init, shell y bootanim
+      run: |
+        mkdir -p system/bin
+        gcc src/init.c -o system/bin/init
+        gcc src/shell.c -o system/bin/shell
+        gcc src/bootanim.c -o system/bin/bootanim
+
+    - name: Crear imagen ISO para VirtualBox
+      run: |
+        mkdir -p iso_root/bin
+        cp system/bin/* iso_root/bin/
+        echo "CultraCore boot ISO" > iso_root/README.txt
+        genisoimage -o cultracore_x64.iso -b README.txt -no-emul-boot -boot-load-size 4 -boot-info-table iso_root
+
+    - name: Subir artefacto
+      uses: actions/upload-artifact@v3
+      with:
+        name: CultraCore-x64-ISO
+        path: cultracore_x64.iso

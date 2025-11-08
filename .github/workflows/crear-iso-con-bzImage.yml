@@ -34,26 +34,3 @@ jobs:
     - name: Obtener isolinux.bin desde paquete Debian
       run: |
         mkdir -p isolinux
-        curl -L --fail -o syslinux-common.deb https://ftp.debian.org/debian/pool/main/s/syslinux/syslinux-common_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
-        dpkg-deb -x syslinux-common.deb isolinux/
-
-        FOUND=$(find isolinux -name isolinux.bin | head -n 1)
-        if [ -z "$FOUND" ]; then
-          echo "❌ isolinux.bin no se encontró en el paquete."
-          find isolinux -type f | head -n 20
-          exit 1
-        fi
-
-        cp "$FOUND" isolinux/isolinux.bin
-
-        genisoimage -o cultracore_x64.iso \
-          -b isolinux/isolinux.bin \
-          -c boot.cat \
-          -no-emul-boot -boot-load-size 4 -boot-info-table \
-          -iso-level 3 -J -R iso_root
-
-    - name: Subir artefacto ISO
-      uses: actions/upload-artifact@v4
-      with:
-        name: CultraCore-x64-ISO
-        path: cultracore_x64.iso

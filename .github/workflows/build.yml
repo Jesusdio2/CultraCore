@@ -28,7 +28,19 @@ jobs:
       run: |
         make defconfig
         make -j$(nproc)
-        cp arch/x86/boot/bzImage ../system/boot/bzImage
+        mkdir -p ../system/boot
+        if cp arch/x86/boot/bzImage ../system/boot/bzImage; then
+          echo "✅ bzImage copiado correctamente a system/boot/"
+        else
+          echo "❌ Error: No se pudo copiar bzImage. Verifica que el archivo exista."
+          exit 1
+        fi
+
+    - name: Subir bzImage como artefacto
+      uses: actions/upload-artifact@v4
+      with:
+        name: CultraCore-bzImage
+        path: system/boot/bzImage
 
     - name: Compilar init, shell y bootanim
       run: |
@@ -55,7 +67,7 @@ jobs:
           -no-emul-boot -boot-load-size 4 -boot-info-table \
           -iso-level 3 -J -R iso_root
 
-    - name: Subir artefacto
+    - name: Subir artefacto ISO
       uses: actions/upload-artifact@v4
       with:
         name: CultraCore-x64-ISO

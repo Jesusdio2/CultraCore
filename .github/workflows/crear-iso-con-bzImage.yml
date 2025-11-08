@@ -44,12 +44,12 @@ jobs:
           exit 1
         fi
 
-        cp "$FOUND" isolinux/isolinux.bin
-        echo "✅ isolinux.bin encontrado en: $FOUND"
-        ls -lh isolinux/isolinux.bin
+        cp "$FOUND" iso_root/isolinux.bin
+        echo "✅ isolinux.bin copiado a iso_root/"
+        ls -lh iso_root/isolinux.bin
 
         genisoimage -o cultracore_x64.iso \
-          -b isolinux/isolinux.bin \
+          -b isolinux.bin \
           -c boot.cat \
           -no-emul-boot -boot-load-size 4 -boot-info-table \
           -iso-level 3 -J -R iso_root

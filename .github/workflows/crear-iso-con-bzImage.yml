@@ -22,38 +22,38 @@ jobs:
         gcc src/init.c -o system/bin/init
         gcc src/shell.c -o system/bin/shell
         gcc src/bootanim.c -o system/bin/bootanim
-        
+
     - name: Generar initramfs
       run: |
-       mkdir -p initramfs/bin
-       cp system/bin/init initramfs/init
-       cp system/bin/* initramfs/bin/
-       chmod +x initramfs/init
-       mkdir -p iso_root/boot
-       cd initramfs
-       find . | cpio -H newc -o | gzip > ../iso_root/boot/initramfs.cpio.gz
+        mkdir -p initramfs/bin
+        cp system/bin/init initramfs/init
+        cp system/bin/* initramfs/bin/
+        chmod +x initramfs/init
+        mkdir -p iso_root/boot
+        cd initramfs
+        echo "📦 Contenido antes de empaquetar:"
+        find .
+        echo "🔍 Verificando permisos de /init:"
+        ls -l init
+        find . | cpio -H newc -o | gzip > ../iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO
       run: |
-        mkdir -p iso_root/boot
         mkdir -p iso_root/bin
         cp system/boot/bzImage iso_root/boot/
         cp system/bin/* iso_root/bin/
-        printf "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND initrd=/boot/initramfs.cpio.gz\n" > iso_root/isolinux.cfg
+        printf "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND initrd=/boot/initramfs.cpio.gz rdinit=/init\n" > iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32 desde paquetes Debian
       run: |
         mkdir -p isolinux
 
-        # Descargar ambos paquetes
         curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
         curl -L --fail -o syslinux-common.deb https://ftp.debian.org/debian/pool/main/s/syslinux/syslinux-common_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
 
-        # Extraer ambos
         dpkg-deb -x isolinux.deb isolinux/
         dpkg-deb -x syslinux-common.deb isolinux/
 
-        # Buscar archivos
         FOUND_BIN=$(find isolinux -name isolinux.bin | head -n 1)
         FOUND_LD=$(find isolinux -name ldlinux.c32 | head -n 1)
 

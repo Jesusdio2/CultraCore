@@ -34,7 +34,7 @@ jobs:
     - name: Descargar isolinux.bin y crear ISO
       run: |
         mkdir -p isolinux
-        curl -L --fail -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
+        curl -L --fail -o isolinux/isolinux.bin https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux.bin
 
         if [ ! -s isolinux/isolinux.bin ]; then
           echo "❌ isolinux.bin no se descargó correctamente."

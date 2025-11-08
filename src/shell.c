@@ -8,12 +8,14 @@
 #define MAX_INPUT 255
 
 void cmd_cd(char *path) {
+    printf(">>> [CMD] Ejecutando cd %s\n", path);
     if (chdir(path) != 0) {
         perror("cd");
     }
 }
 
 void cmd_ls() {
+    printf(">>> [CMD] Ejecutando ls\n");
     DIR *dir;
     struct dirent *entry;
     char cwd[1024];
@@ -31,6 +33,7 @@ void cmd_ls() {
 }
 
 void cmd_touch(char *filename) {
+    printf(">>> [CMD] Ejecutando touch %s\n", filename);
     FILE *f = fopen(filename, "w");
     if (f == NULL) {
         perror("touch");
@@ -40,12 +43,14 @@ void cmd_touch(char *filename) {
 }
 
 void cmd_rm(char *filename) {
+    printf(">>> [CMD] Ejecutando rm %s\n", filename);
     if (remove(filename) != 0) {
         perror("rm");
     }
 }
 
 void cmd_cat(char *filename) {
+    printf(">>> [CMD] Ejecutando cat %s\n", filename);
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
         perror("cat");
@@ -59,14 +64,24 @@ void cmd_cat(char *filename) {
 }
 
 int main() {
+    printf(">>> [SHELL] Shell iniciado <<<\n");
+
+    if (!isatty(fileno(stdin))) {
+        fprintf(stderr, ">>> [SHELL] No hay terminal activa. Cerrando shell.\n");
+        return 1;
+    }
+
     char input[MAX_INPUT];
     char *cmd, *arg;
 
     while (1) {
         printf("cultra> ");
-        if (fgets(input, sizeof(input), stdin) == NULL) break;
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf(">>> [SHELL] Entrada finalizada. Cerrando shell.\n");
+            break;
+        }
 
-        input[strcspn(input, "\n")] = 0; // quitar salto de línea
+        input[strcspn(input, "\n")] = 0;
         cmd = strtok(input, " ");
         arg = strtok(NULL, "");
 
@@ -81,5 +96,6 @@ int main() {
         else printf("Comando desconocido: %s\n", cmd);
     }
 
+    printf(">>> [SHELL] Shell finalizado <<<\n");
     return 0;
 }

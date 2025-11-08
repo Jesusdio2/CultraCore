@@ -31,12 +31,19 @@ jobs:
         cp system/bin/* iso_root/bin/
         echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
 
-    - name: Obtener isolinux.bin y ldlinux.c32 desde paquete Debian
+    - name: Obtener isolinux.bin y ldlinux.c32 desde paquetes Debian
       run: |
         mkdir -p isolinux
-        curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
-        dpkg-deb -x isolinux.deb isolinux/
 
+        # Descargar ambos paquetes
+        curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
+        curl -L --fail -o syslinux-common.deb https://ftp.debian.org/debian/pool/main/s/syslinux/syslinux-common_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
+
+        # Extraer ambos
+        dpkg-deb -x isolinux.deb isolinux/
+        dpkg-deb -x syslinux-common.deb isolinux/
+
+        # Buscar archivos
         FOUND_BIN=$(find isolinux -name isolinux.bin | head -n 1)
         FOUND_LD=$(find isolinux -name ldlinux.c32 | head -n 1)
 

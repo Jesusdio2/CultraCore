@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#define MAX_INPUT 256
+#define MAX_INPUT 255
 
 void cmd_cd(char *path) {
     if (chdir(path) != 0) {

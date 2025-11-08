@@ -16,7 +16,7 @@ jobs:
 
     - name: Clonar kernel_common
       run: |
-        git clone https://github.com/tuusuario/kernel_common.git kernel_common
+        git clone https://github.com/Jesusdio2/kernel_common.git kernel_common
 
     - name: Instalar dependencias
       run: |

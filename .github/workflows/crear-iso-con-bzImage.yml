@@ -14,12 +14,12 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install build-essential genisoimage syslinux gcc
+        sudo apt install build-essential genisoimage gcc curl
 
     - name: Descargar isolinux.bin manualmente
       run: |
-       mkdir -p isolinux
-       curl -L -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
+        mkdir -p isolinux
+        curl -L -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
 
     - name: Compilar init, shell y bootanim
       run: |
@@ -38,16 +38,6 @@ jobs:
 
     - name: Crear imagen ISO con kernel
       run: |
-        mkdir -p isolinux
-        if [ -f /usr/lib/syslinux/modules/bios/isolinux.bin ]; then
-          cp /usr/lib/syslinux/modules/bios/isolinux.bin isolinux/
-        elif [ -f /usr/lib/ISOLINUX/isolinux.bin ]; then
-          cp /usr/lib/ISOLINUX/isolinux.bin isolinux/
-        else
-          echo "❌ isolinux.bin no encontrado. Verifica instalación de syslinux."
-          exit 1
-        fi
-
         genisoimage -o cultracore_x64.iso \
           -b isolinux/isolinux.bin \
           -c boot.cat \

@@ -16,6 +16,11 @@ jobs:
         sudo apt update
         sudo apt install build-essential genisoimage syslinux gcc
 
+    - name: Descargar isolinux.bin manualmente
+      run: |
+       mkdir -p isolinux
+       curl -L -o isolinux/isolinux.bin https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03/bios/core/isolinux.bin
+
     - name: Compilar init, shell y bootanim
       run: |
         mkdir -p system/bin

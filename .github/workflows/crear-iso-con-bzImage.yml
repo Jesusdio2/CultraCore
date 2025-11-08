@@ -1,0 +1,54 @@
+name: Crear ISO con bzImage existente
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iso-from-bzimage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar CultraCore
+      uses: actions/checkout@v3
+
+    - name: Instalar dependencias
+      run: |
+        sudo apt update
+        sudo apt install build-essential genisoimage syslinux gcc
+
+    - name: Descargar artefacto bzImage
+      uses: actions/download-artifact@v4
+      with:
+        name: CultraCore-bzImage
+        path: system/boot
+
+    - name: Compilar init, shell y bootanim
+      run: |
+        mkdir -p system/bin
+        gcc src/init.c -o system/bin/init
+        gcc src/shell.c -o system/bin/shell
+        gcc src/bootanim.c -o system/bin/bootanim
+
+    - name: Crear estructura ISO
+      run: |
+        mkdir -p iso_root/boot
+        mkdir -p iso_root/bin
+        cp system/boot/bzImage iso_root/boot/
+        cp system/bin/* iso_root/bin/
+        echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
+
+    - name: Crear imagen ISO con kernel
+      run: |
+        mkdir -p isolinux
+        cp /usr/lib/syslinux/isolinux.bin isolinux/
+        genisoimage -o cultracore_x64.iso \
+          -b isolinux/isolinux.bin \
+          -c boot.cat \
+          -no-emul-boot -boot-load-size 4 -boot-info-table \
+          -iso-level 3 -J -R iso_root
+
+    - name: Subir artefacto ISO
+      uses: actions/upload-artifact@v4
+      with:
+        name: CultraCore-x64-ISO
+        path: cultracore_x64.iso

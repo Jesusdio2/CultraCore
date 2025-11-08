@@ -29,7 +29,7 @@ jobs:
         mkdir -p iso_root/bin
         cp system/boot/bzImage iso_root/boot/
         cp system/bin/* iso_root/bin/
-        printf "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init\n" > iso_root/isolinux.cfg
+        printf "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND initrd=/boot/initramfs.cpio.gz\n" > iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32 desde paquetes Debian
       run: |

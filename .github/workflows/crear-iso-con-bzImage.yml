@@ -34,7 +34,7 @@ jobs:
     - name: Obtener isolinux.bin desde paquete Debian
       run: |
         mkdir -p isolinux
-        curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg-1.3_all.deb
+        curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3.1_all.deb
         dpkg-deb -x isolinux.deb isolinux/
         cp isolinux/usr/lib/syslinux/isolinux.bin isolinux/
 

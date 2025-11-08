@@ -31,22 +31,28 @@ jobs:
         cp system/bin/* iso_root/bin/
         echo "DEFAULT cultracore\nLABEL cultracore\n  KERNEL /boot/bzImage\n  APPEND init=/bin/init" > iso_root/isolinux.cfg
 
-    - name: Obtener isolinux.bin desde paquete Debian
+    - name: Obtener isolinux.bin y ldlinux.c32 desde paquete Debian
       run: |
         mkdir -p isolinux
         curl -L --fail -o isolinux.deb https://ftp.debian.org/debian/pool/main/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3.2_all.deb
         dpkg-deb -x isolinux.deb isolinux/
 
-        FOUND=$(find isolinux -name isolinux.bin | head -n 1)
-        if [ -z "$FOUND" ]; then
-          echo "❌ isolinux.bin no se encontró en el paquete."
-          find isolinux -type f | head -n 20
+        FOUND_BIN=$(find isolinux -name isolinux.bin | head -n 1)
+        FOUND_LD=$(find isolinux -name ldlinux.c32 | head -n 1)
+
+        if [ -z "$FOUND_BIN" ] || [ -z "$FOUND_LD" ]; then
+          echo "❌ No se encontraron los archivos necesarios:"
+          [ -z "$FOUND_BIN" ] && echo "  - isolinux.bin faltante"
+          [ -z "$FOUND_LD" ] && echo "  - ldlinux.c32 faltante"
+          find isolinux -type f | grep -E 'isolinux.bin|ldlinux.c32'
           exit 1
         fi
 
-        cp "$FOUND" iso_root/isolinux.bin
-        echo "✅ isolinux.bin copiado a iso_root/"
-        ls -lh iso_root/isolinux.bin
+        cp "$FOUND_BIN" iso_root/isolinux.bin
+        cp "$FOUND_LD" iso_root/ldlinux.c32
+
+        echo "✅ Archivos copiados a iso_root/"
+        ls -lh iso_root/isolinux.bin iso_root/ldlinux.c32
 
         genisoimage -o cultracore_x64.iso \
           -b isolinux.bin \

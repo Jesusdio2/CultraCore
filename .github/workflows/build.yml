@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Clonar CultraCore
-      uses: actions/checkout@v3
+    - uses: actions/upload-artifact@v4
 
     - name: Instalar dependencias
       run: |
@@ -34,7 +34,7 @@ jobs:
         genisoimage -o cultracore_x64.iso -b README.txt -no-emul-boot -boot-load-size 4 -boot-info-table iso_root
 
     - name: Subir artefacto
-      uses: actions/upload-artifact@v3
-      with:
-        name: CultraCore-x64-ISO
-        path: cultracore_x64.iso
+      - uses: actions/upload-artifact@v4
+  with:
+    name: CultraCore-x64-ISO
+    path: cultracore_x64.iso

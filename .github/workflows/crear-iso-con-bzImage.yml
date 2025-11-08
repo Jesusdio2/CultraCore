@@ -22,6 +22,14 @@ jobs:
         gcc src/init.c -o system/bin/init
         gcc src/shell.c -o system/bin/shell
         gcc src/bootanim.c -o system/bin/bootanim
+    - name: Generar initramfs
+      run: |
+       mkdir -p initramfs/bin
+       cp system/bin/init initramfs/init
+       cp system/bin/* initramfs/bin/
+       chmod +x initramfs/init
+       cd initramfs
+       find . | cpio -H newc -o | gzip > ../iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO
       run: |

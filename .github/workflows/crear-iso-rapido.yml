@@ -65,8 +65,8 @@ jobs:
 
     - name: Obtener ldlinux.c32 manualmente
       run: |
-        curl -L http://archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/syslinux-common_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_all.deb -o syslinux-common.deb
-        dpkg-deb -x syslinux-common.deb .
+        curl -L http://archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/syslinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_amd64.deb -o syslinux.deb
+        dpkg-deb -x syslinux.deb .
         cp ./usr/lib/syslinux/modules/bios/ldlinux.c32 ./iso_root/isolinux/ldlinux.c32
         ls -l iso_root/isolinux/
 

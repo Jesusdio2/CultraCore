@@ -1,9 +1,6 @@
 name: Build CultraCore x86_64
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:

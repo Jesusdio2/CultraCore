@@ -17,13 +17,14 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl
 
-    - name: Descargar artefacto bzImage
-      uses: actions/download-artifact@v4
-      with:
-        name: CultraCore-bzImage
-        path: system/boot
+    - name: Descargar bzImage desde Release
+      run: |
+        mkdir -p system/boot
+        curl -L \
+          https://github.com/Jesusdio2/CultraCore/releases/download/Dev0/bzImage \
+          -o system/boot/bzImage
 
     - name: Compilar init, shell y bootanim
       run: |

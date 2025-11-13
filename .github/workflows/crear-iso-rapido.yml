@@ -62,6 +62,12 @@ jobs:
         curl -L http://azure.archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_all.deb -o isolinux.deb
         dpkg-deb -x isolinux.deb .
         cp ./usr/lib/ISOLINUX/isolinux.bin ./iso_root/isolinux/isolinux.bin
+
+    - name: Obtener ldlinux.c32 manualmente
+      run: |
+        curl -L http://archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/syslinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_amd64.deb -o syslinux.deb
+        dpkg-deb -x syslinux.deb .
+        cp ./usr/lib/syslinux/modules/bios/ldlinux.c32 ./iso_root/isolinux/ldlinux.c32
         ls -l iso_root/isolinux/
 
     - name: Crear imagen ISO con kernel

@@ -20,7 +20,7 @@ jobs:
       run: |
         mkdir -p system/boot
         curl -L \
-          https://github.com/Jesusdio2/CultraCore/releases/download/Dev0/bzImage \
+          https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/bzImage \
           -o system/boot/bzImage
 
     - name: Compilar init, shell y bootanim

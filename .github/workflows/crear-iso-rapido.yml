@@ -17,7 +17,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux-common
 
     - name: Descargar bzImage desde Release
       run: |
@@ -56,18 +56,13 @@ jobs:
         echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
         echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init" >> iso_root/isolinux.cfg
 
-    - name: Obtener isolinux.bin manualmente
+    - name: Obtener isolinux.bin y ldlinux.c32
       run: |
         mkdir -p iso_root/isolinux
         curl -L http://archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_all.deb -o isolinux.deb
         dpkg-deb -x isolinux.deb .
         cp ./usr/lib/ISOLINUX/isolinux.bin ./iso_root/isolinux/isolinux.bin
-
-    - name: Obtener ldlinux.c32 manualmente
-      run: |
-        curl -L http://archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/syslinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_amd64.deb -o syslinux.deb
-        dpkg-deb -x syslinux.deb .
-        cp ./usr/lib/syslinux/modules/bios/ldlinux.c32 ./iso_root/isolinux/ldlinux.c32
+        cp /usr/lib/syslinux/modules/bios/ldlinux.c32 ./iso_root/isolinux/ldlinux.c32
         ls -l iso_root/isolinux/
 
     - name: Crear imagen ISO con kernel

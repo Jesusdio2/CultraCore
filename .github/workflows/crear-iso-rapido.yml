@@ -17,7 +17,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl
 
     - name: Descargar bzImage desde Release
       run: |
@@ -56,10 +56,15 @@ jobs:
         echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
         echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init" >> iso_root/isolinux.cfg
 
-    - name: Crear imagen ISO con kernel
+    - name: Obtener isolinux.bin manualmente
       run: |
         mkdir -p isolinux
-        cp /usr/lib/syslinux/modules/bios/isolinux.bin isolinux/
+        curl -L http://azure.archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_all.deb -o isolinux.deb
+        dpkg-deb -x isolinux.deb .
+        cp ./usr/lib/ISOLINUX/isolinux.bin isolinux/
+
+    - name: Crear imagen ISO con kernel
+      run: |
         genisoimage -o cultracore_x64.iso \
           -b isolinux/isolinux.bin \
           -c boot.cat \

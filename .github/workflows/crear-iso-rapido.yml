@@ -17,7 +17,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux
 
     - name: Descargar bzImage desde Release
       run: |
@@ -59,7 +59,7 @@ jobs:
     - name: Crear imagen ISO con kernel
       run: |
         mkdir -p isolinux
-        cp /usr/lib/ISOLINUX/isolinux.bin isolinux/
+        cp /usr/lib/syslinux/modules/bios/isolinux.bin isolinux/
         genisoimage -o cultracore_x64.iso \
           -b isolinux/isolinux.bin \
           -c boot.cat \

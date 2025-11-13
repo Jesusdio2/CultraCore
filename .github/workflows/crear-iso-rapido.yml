@@ -58,11 +58,11 @@ jobs:
 
     - name: Obtener isolinux.bin manualmente
       run: |
-        mkdir -p isolinux
+        mkdir -p iso_root/isolinux
         curl -L http://azure.archive.ubuntu.com/ubuntu/pool/universe/s/syslinux/isolinux_6.04~git20190206.bf6db5b4+dfsg1-3ubuntu3_all.deb -o isolinux.deb
         dpkg-deb -x isolinux.deb .
-        cp ./usr/lib/ISOLINUX/isolinux.bin ./isolinux/isolinux.bin
-        ls -l isolinux/
+        cp ./usr/lib/ISOLINUX/isolinux.bin ./iso_root/isolinux/isolinux.bin
+        ls -l iso_root/isolinux/
 
     - name: Crear imagen ISO con kernel
       run: |

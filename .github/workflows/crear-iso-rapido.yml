@@ -1,0 +1,72 @@
+name: Build CultraCore ISO (rápido)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-x64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar CultraCore
+      uses: actions/checkout@v3
+
+    - name: Instalar dependencias
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip
+
+    - name: Descargar artefacto bzImage
+      uses: actions/download-artifact@v4
+      with:
+        name: CultraCore-bzImage
+        path: system/boot
+
+    - name: Compilar init, shell y bootanim
+      run: |
+        mkdir -p system/bin
+        gcc -static src/init.c -o system/bin/init
+        gcc src/shell.c -o system/bin/shell
+        gcc src/bootanim.c -o system/bin/bootanim
+
+    - name: Generar initramfs
+      run: |
+        mkdir -p initramfs/bin
+        cp system/bin/init initramfs/bin/init
+        cp system/bin/shell initramfs/bin/shell
+        cp system/bin/bootanim initramfs/bin/bootanim
+        chmod +x initramfs/bin/init
+        mkdir -p iso_root/boot
+        cd initramfs
+        echo "📦 Contenido del initramfs:"
+        find .
+        echo "🔍 Verificando permisos de /bin/init:"
+        ls -l bin/init
+        find . | cpio -H newc -o | gzip > ../iso_root/boot/initramfs.cpio.gz
+
+    - name: Crear estructura ISO
+      run: |
+        cp system/boot/bzImage iso_root/boot/
+        echo "DEFAULT cultracore" > iso_root/isolinux.cfg
+        echo "LABEL cultracore" >> iso_root/isolinux.cfg
+        echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
+        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init" >> iso_root/isolinux.cfg
+
+    - name: Crear imagen ISO con kernel
+      run: |
+        mkdir -p isolinux
+        cp /usr/lib/ISOLINUX/isolinux.bin isolinux/
+        genisoimage -o cultracore_x64.iso \
+          -b isolinux/isolinux.bin \
+          -c boot.cat \
+          -no-emul-boot -boot-load-size 4 -boot-info-table \
+          -iso-level 3 -J -R iso_root
+
+    - name: Subir artefacto ISO
+      uses: actions/upload-artifact@v4
+      with:
+        name: CultraCore-x64-ISO
+        path: cultracore_x64.iso

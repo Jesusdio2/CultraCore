@@ -64,10 +64,12 @@ jobs:
       run: |
         mkdir -p iso_root/boot
         cp system/boot/bzImage iso_root/boot/
-        echo "DEFAULT cultracore
+        cat > iso_root/isolinux.cfg <<'EOF'
+DEFAULT cultracore
 LABEL cultracore
   KERNEL /boot/bzImage
-  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init" > iso_root/isolinux.cfg
+  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init
+EOF
 
     - name: Crear imagen ISO con kernel
       run: |

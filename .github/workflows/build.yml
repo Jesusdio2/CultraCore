@@ -1,7 +1,10 @@
 name: Build CultraCore x86_64
 
 on:
-  workflow_dispatch:
+  push:        # Se ejecuta en cada commit que subas
+    branches:
+      - main   # O la rama que uses como principal (puede ser master)
+  workflow_dispatch:  # También puedes lanzarlo manualmente si lo deseas
 
 jobs:
   build-x64:

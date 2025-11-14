@@ -14,7 +14,7 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux-common
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux-common libsdl2-dev
 
     - name: Descargar bzImage desde Release
       run: |
@@ -23,12 +23,13 @@ jobs:
           https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/bzImage \
           -o system/boot/bzImage
 
-    - name: Compilar init, shell y bootanim
+    - name: Compilar binarios (init, shell, bootanim, installer_gui)
       run: |
         mkdir -p system/bin
         gcc -static src/init.c -o system/bin/init
         gcc src/shell.c -o system/bin/shell
         gcc src/bootanim.c -o system/bin/bootanim
+        gcc src/installer_gui.c -o system/bin/installer_gui -lSDL2
 
     - name: Generar initramfs
       run: |
@@ -36,6 +37,7 @@ jobs:
         cp system/bin/init initramfs/bin/init
         cp system/bin/shell initramfs/bin/shell
         cp system/bin/bootanim initramfs/bin/bootanim
+        cp system/bin/installer_gui initramfs/bin/installer_gui
         chmod +x initramfs/bin/init
         mkdir -p iso_root/boot
         cd initramfs
@@ -51,7 +53,7 @@ jobs:
         echo "DEFAULT cultracore" > iso_root/isolinux.cfg
         echo "LABEL cultracore" >> iso_root/isolinux.cfg
         echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
-        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init console=ttyS0 console=tty0" >> iso_root/isolinux.cfg
+        echo "  APPEND initrd=/boot/initramfs.cpio.gz root=/dev/ram0 init=/bin/init console=ttyS0 console=tty0" >> iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32
       run: |

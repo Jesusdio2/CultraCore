@@ -27,30 +27,21 @@ jobs:
     - name: Compilar binarios (init, shell, bootanim, installer_gui)
       run: |
         mkdir -p system/bin
-        # init del PE: estático para no depender de librerías
         gcc -static src/init.c -o system/bin/init
-        # shell y bootanim pueden ser dinámicos; preferible estáticos en PE
         gcc -static src/shell.c -o system/bin/shell
         gcc -static src/bootanim.c -o system/bin/bootanim
-        # installer_gui: intenta estático; si tu entorno no soporta SDL2 estático,
-        # compílalo dinámico y copia sus librerías al initramfs (ver paso siguiente)
         gcc -static src/installer_gui.c -o system/bin/installer_gui -lSDL2 || \
           gcc src/installer_gui.c -o system/bin/installer_gui -lSDL2
 
     - name: Generar initramfs (PE con busybox)
       run: |
-        # Estructura base
         mkdir -p initramfs/bin initramfs/sbin initramfs/etc
         mkdir -p initramfs/proc initramfs/sys initramfs/dev
-
-        # Binarios propios
         cp system/bin/init initramfs/bin/init
         cp system/bin/shell initramfs/bin/shell
         cp system/bin/bootanim initramfs/bin/bootanim
         cp system/bin/installer_gui initramfs/bin/installer_gui
         chmod +x initramfs/bin/init
-
-        # Busybox estático + symlinks de utilidades básicas
         cp /bin/busybox initramfs/bin/busybox
         ln -s /bin/busybox initramfs/bin/sh
         ln -s /bin/busybox initramfs/bin/mount
@@ -59,31 +50,23 @@ jobs:
         ln -s /bin/busybox initramfs/bin/umount
         ln -s /bin/busybox initramfs/bin/echo
         ln -s /bin/busybox initramfs/bin/cat
-
-        # Si installer_gui quedó dinámico, copiar librerías necesarias (SDL2)
         if ldd system/bin/installer_gui >/dev/null 2>&1; then
           mkdir -p initramfs/lib initramfs/lib64
-          # Copiar dependencias reportadas por ldd
           ldd system/bin/installer_gui | awk '/=> \//{print $3}' | xargs -r -I{} cp -v {} initramfs/lib/ || true
-          # Copiar SDL2 si está en rutas estándar
           for p in /usr/lib/x86_64-linux-gnu/libSDL2*.so* /usr/lib/libSDL2*.so*; do
             [ -f "$p" ] && cp -v "$p" initramfs/lib/ || true
           done
         fi
-
-        # Empaquetar initramfs
         mkdir -p iso_root/boot
         (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO
       run: |
         cp system/boot/bzImage iso_root/boot/
-        cat > iso_root/isolinux.cfg <<'CFG'
-DEFAULT cultracore
-LABEL cultracore
-  KERNEL /boot/bzImage
-  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init console=ttyS0 console=tty0 raid=noautodetect
-CFG
+        echo "DEFAULT cultracore" > iso_root/isolinux.cfg
+        echo "LABEL cultracore" >> iso_root/isolinux.cfg
+        echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
+        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init console=ttyS0 console=tty0 raid=noautodetect" >> iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32
       run: |

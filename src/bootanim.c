@@ -2,28 +2,15 @@
 #include <unistd.h>
 
 int main() {
-    printf(">>> [BOOTANIM] Animación de arranque iniciada <<<\n");
+    printf(">>> [BOOTANIM] CultraCore is loading files...\n");
 
-    const char *frames[] = {
-        "[=     ]",
-        "[==    ]",
-        "[===   ]",
-        "[====  ]",
-        "[===== ]",
-        "[======]"
-    };
-    int num_frames = sizeof(frames) / sizeof(frames[0]);
-
-    for (int i = 0; i < num_frames; i++) {
-        if (frames[i] == NULL) {
-            fprintf(stderr, ">>> [BOOTANIM] Error: frame %d no se pudo leer\n", i);
-            return 1;
-        }
-        printf("\r%s", frames[i]);
+    for (int i = 0; i <= 100; i += 10) {
+        printf("\r[%-10s] %3d%%", 
+               "##########" + (10 - i/10), i);
         fflush(stdout);
-        sleep(1);
+        sleep(1); // simula carga
     }
 
-    printf("\n>>> [BOOTANIM] Animación terminada <<<\n");
+    printf("\n>>> [BOOTANIM] Carga completa.\n");
     return 0;
 }

@@ -1,101 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/stat.h>
-
-#define MAX_INPUT 255
-
-void cmd_cd(char *path) {
-    printf(">>> [CMD] Ejecutando cd %s\n", path);
-    if (chdir(path) != 0) {
-        perror("cd");
-    }
-}
-
-void cmd_ls() {
-    printf(">>> [CMD] Ejecutando ls\n");
-    DIR *dir;
-    struct dirent *entry;
-    char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
-    dir = opendir(cwd);
-    if (dir == NULL) {
-        perror("ls");
-        return;
-    }
-    while ((entry = readdir(dir)) != NULL) {
-        printf("%s  ", entry->d_name);
-    }
-    printf("\n");
-    closedir(dir);
-}
-
-void cmd_touch(char *filename) {
-    printf(">>> [CMD] Ejecutando touch %s\n", filename);
-    FILE *f = fopen(filename, "w");
-    if (f == NULL) {
-        perror("touch");
-        return;
-    }
-    fclose(f);
-}
-
-void cmd_rm(char *filename) {
-    printf(">>> [CMD] Ejecutando rm %s\n", filename);
-    if (remove(filename) != 0) {
-        perror("rm");
-    }
-}
-
-void cmd_cat(char *filename) {
-    printf(">>> [CMD] Ejecutando cat %s\n", filename);
-    FILE *f = fopen(filename, "r");
-    if (f == NULL) {
-        perror("cat");
-        return;
-    }
-    char ch;
-    while ((ch = fgetc(f)) != EOF) {
-        putchar(ch);
-    }
-    fclose(f);
-}
 
 int main() {
-    printf(">>> [SHELL] Shell iniciado <<<\n");
-
-    if (!isatty(fileno(stdin))) {
-        fprintf(stderr, ">>> [SHELL] No hay terminal activa. Cerrando shell.\n");
-        return 1;
-    }
-
-    char input[MAX_INPUT];
-    char *cmd, *arg;
+    char cmd[256];
+    printf(">>> [SHELL] CultraCore shell iniciada <<<\n");
 
     while (1) {
-        printf("cultra> ");
-        if (fgets(input, sizeof(input), stdin) == NULL) {
-            printf(">>> [SHELL] Entrada finalizada. Cerrando shell.\n");
+        printf("cultracore> ");
+        fflush(stdout);
+
+        if (!fgets(cmd, sizeof(cmd), stdin)) break;
+        cmd[strcspn(cmd, "\n")] = 0; // quitar salto de línea
+
+        if (strcmp(cmd, "exit") == 0) {
+            printf(">>> [SHELL] Saliendo...\n");
             break;
         }
 
-        input[strcspn(input, "\n")] = 0;
-        cmd = strtok(input, " ");
-        arg = strtok(NULL, "");
-
-        if (cmd == NULL) continue;
-
-        if (strcmp(cmd, "exit") == 0) break;
-        else if (strcmp(cmd, "cd") == 0 && arg) cmd_cd(arg);
-        else if (strcmp(cmd, "ls") == 0) cmd_ls();
-        else if (strcmp(cmd, "touch") == 0 && arg) cmd_touch(arg);
-        else if (strcmp(cmd, "rm") == 0 && arg) cmd_rm(arg);
-        else if (strcmp(cmd, "cat") == 0 && arg) cmd_cat(arg);
-        else printf("Comando desconocido: %s\n", cmd);
+        if (strlen(cmd) > 0) system(cmd);
     }
 
-    printf(">>> [SHELL] Shell finalizado <<<\n");
     return 0;
 }

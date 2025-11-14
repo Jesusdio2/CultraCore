@@ -51,7 +51,7 @@ jobs:
         echo "DEFAULT cultracore" > iso_root/isolinux.cfg
         echo "LABEL cultracore" >> iso_root/isolinux.cfg
         echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
-        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init" >> iso_root/isolinux.cfg
+        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init console=ttyS0 console=tty0" >> iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32
       run: |
@@ -66,7 +66,7 @@ jobs:
       run: |
         genisoimage -o cultracore_x64.iso \
           -b isolinux/isolinux.bin \
-          -c boot.cat \
+          -c isolinux/boot.cat \
           -no-emul-boot -boot-load-size 4 -boot-info-table \
           -iso-level 3 -J -R iso_root
 

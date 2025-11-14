@@ -1,4 +1,4 @@
-name: Build CultraCore ISO (rápido con caché)
+name: Build CultraCore ISO (rápido corregido)
 
 on:
   workflow_dispatch:
@@ -10,14 +10,6 @@ jobs:
     steps:
     - name: Clonar CultraCore
       uses: actions/checkout@v3
-
-    - name: Cachear dependencias APT
-      uses: actions/cache@v3
-      with:
-        path: /var/cache/apt/archives
-        key: apt-cache-${{ runner.os }}-${{ hashFiles('**/src/*.c') }}
-        restore-keys: |
-          apt-cache-${{ runner.os }}-
 
     - name: Instalar dependencias
       run: |
@@ -58,7 +50,7 @@ jobs:
         echo "DEFAULT cultracore" > iso_root/isolinux.cfg
         echo "LABEL cultracore" >> iso_root/isolinux.cfg
         echo "  KERNEL /boot/bzImage" >> iso_root/isolinux.cfg
-        echo "  APPEND initrd=/boot/initramfs.cpio.gz root=/dev/ram0 init=/bin/init console=ttyS0 console=tty0" >> iso_root/isolinux.cfg
+        echo "  APPEND initrd=/boot/initramfs.cpio.gz init=/bin/init console=ttyS0 console=tty0 raid=noautodetect" >> iso_root/isolinux.cfg
 
     - name: Obtener isolinux.bin y ldlinux.c32
       run: |

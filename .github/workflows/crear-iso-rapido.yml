@@ -1,4 +1,4 @@
-name: Build CultraCore ISO (rápido)
+name: Build CultraCore ISO (rápido con caché)
 
 on:
   workflow_dispatch:
@@ -11,10 +11,19 @@ jobs:
     - name: Clonar CultraCore
       uses: actions/checkout@v3
 
+    - name: Cachear dependencias APT
+      uses: actions/cache@v3
+      with:
+        path: /var/cache/apt/archives
+        key: apt-cache-${{ runner.os }}-${{ hashFiles('**/src/*.c') }}
+        restore-keys: |
+          apt-cache-${{ runner.os }}-
+
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev libelf-dev cpio gzip curl syslinux-common libsdl2-dev
+        sudo apt install -y build-essential genisoimage libncurses-dev flex bison libssl-dev \
+          libelf-dev cpio gzip curl syslinux-common libsdl2-dev
 
     - name: Descargar bzImage desde Release
       run: |
@@ -41,10 +50,6 @@ jobs:
         chmod +x initramfs/bin/init
         mkdir -p iso_root/boot
         cd initramfs
-        echo "📦 Contenido del initramfs:"
-        find .
-        echo "🔍 Verificando permisos de /bin/init:"
-        ls -l bin/init
         find . | cpio -H newc -o | gzip > ../iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO
@@ -62,7 +67,6 @@ jobs:
         dpkg-deb -x isolinux.deb .
         cp ./usr/lib/ISOLINUX/isolinux.bin ./iso_root/isolinux/isolinux.bin
         cp /usr/lib/syslinux/modules/bios/ldlinux.c32 ./iso_root/isolinux/ldlinux.c32
-        ls -l iso_root/isolinux/
 
     - name: Crear imagen ISO con kernel
       run: |

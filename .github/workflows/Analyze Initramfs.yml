@@ -1,0 +1,31 @@
+name: Validar Initramfs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-initramfs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Descargar initramfs
+      run: |
+        curl -L \
+          https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/initramfs.cpio.gz \
+          -o initramfs.cpio.gz
+
+    - name: Instalar dependencias
+      run: |
+        sudo apt update
+        sudo apt install -y cpio gzip file
+
+    - name: Descomprimir y listar contenido
+      run: |
+        mkdir initramfs_root
+        cd initramfs_root
+        gzip -dc ../initramfs.cpio.gz | cpio -idmv
+        echo "📦 Contenido del initramfs:"
+        find .
+        echo "🔍 Verificando /bin/init:"
+        ls -l bin/init
+        file bin/init

@@ -1,0 +1,42 @@
+name: Build CultraCore Kernel ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar CultraCoreKernel
+      uses: actions/checkout@v3
+      with:
+        repository: Jesusdio2/CultraCoreKernel
+
+    - name: Instalar dependencias
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libncurses-dev flex bison libssl-dev libelf-dev bc cpio gcc-aarch64-linux-gnu
+
+    - name: Configurar kernel ARM64
+      run: |
+        make ARCH=arm64 defconfig
+        scripts/config --file .config --enable CONFIG_BLK_DEV_INITRD
+        scripts/config --file .config --enable CONFIG_RD_GZIP
+        scripts/config --file .config --enable CONFIG_DEVTMPFS
+        scripts/config --file .config --enable CONFIG_DEVTMPFS_MOUNT
+
+    - name: Compilar kernel ARM64
+      run: |
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
+
+    - name: Guardar Image ARM64
+      run: |
+        mkdir -p artifacts
+        cp arch/arm64/boot/Image artifacts/Image
+
+    - name: Subir artefacto Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: CultraCoreKernel-ARM64-Image
+        path: artifacts/Image

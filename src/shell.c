@@ -1,34 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-static int run(const char *cmd) {
-    fprintf(stderr, "[init] %s\n", cmd);
-    return system(cmd);
-}
+#include <string.h>
 
 int main() {
-    printf(">>> [INIT] CultraCore PE iniciado <<<\n");
+    char cmd[256];
 
-    // Montajes esenciales del entorno en RAM
-    run("mount -t proc proc /proc");
-    run("mount -t sysfs sysfs /sys");
-    run("mount -t devtmpfs devtmpfs /dev");
+    printf(">>> [SHELL] CultraCore shell iniciada <<<\n");
 
-    printf("CultraCore is loading files...\n");
-
-    // Animación opcional
-    run("/bin/bootanim");
-
-    // Intentar instalador gráfico
-    int rc = run("/bin/installer_gui");
-    if (rc != 0) {
-        fprintf(stderr, "[init] installer_gui falló (rc=%d). Abriendo shell.\n", rc);
-    }
-
-    // Mantener siempre una shell viva
     while (1) {
-        run("/bin/shell");
+        printf("cultracore> ");
+        fflush(stdout);
+
+        // leer comando
+        if (!fgets(cmd, sizeof(cmd), stdin)) {
+            break; // EOF o error
+        }
+
+        // quitar salto de línea
+        cmd[strcspn(cmd, "\n")] = 0;
+
+        // comando "exit" para salir
+        if (strcmp(cmd, "exit") == 0) {
+            printf(">>> [SHELL] Saliendo...\n");
+            break;
+        }
+
+        // ejecutar comando si no está vacío
+        if (strlen(cmd) > 0) {
+            system(cmd);
+        }
     }
 
-    return 0; // nunca se alcanza
+    return 0;
 }

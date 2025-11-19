@@ -13,11 +13,11 @@ jobs:
 
     - name: Instalar dependencias
       run: |
-       sudo apt update
-       sudo apt install -y build-essential gcc-aarch64-linux-gnu \
-        genisoimage grub2-common grub-pc-bin xorriso mtools \
-        libncurses-dev flex bison libssl-dev libelf-dev \
-        cpio gzip curl busybox-static
+        sudo apt update
+        sudo apt install -y build-essential gcc-aarch64-linux-gnu \
+          genisoimage grub2-common grub-pc-bin xorriso mtools \
+          libncurses-dev flex bison libssl-dev libelf-dev \
+          cpio gzip curl busybox-static libsdl2-dev
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |
@@ -25,39 +25,41 @@ jobs:
         curl -L https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/Image \
           -o system/boot/Image
 
-    - name: Compilar binarios (init, shell, bootanim)
+    - name: Compilar binarios (init, shell, bootanim, installer_gui)
       run: |
         mkdir -p system/bin
         aarch64-linux-gnu-gcc -static src/init.c -o system/bin/init
         aarch64-linux-gnu-gcc -static src/shell.c -o system/bin/shell
-        aarch64-linux-gnu-gcc -static src/bootanim.c -o system/bin/bootanim
+        aarch64-linux-gnu-gcc -static src/bootanim.c -o system/bin/bootanim -lSDL2
+        aarch64-linux-gnu-gcc -static src/installer_gui.c -o system/bin/installer_gui -lSDL2
 
     - name: Generar initramfs
       run: |
-       mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
-       cp system/bin/init initramfs/init
-       cp system/bin/shell initramfs/bin/shell
-       cp system/bin/bootanim initramfs/bin/bootanim
-       chmod +x initramfs/init
+        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
+        cp system/bin/init initramfs/init
+        cp system/bin/shell initramfs/bin/shell
+        cp system/bin/bootanim initramfs/bin/bootanim
+        cp system/bin/installer_gui initramfs/bin/installer_gui
+        chmod +x initramfs/init
 
-       cp /bin/busybox initramfs/busybox
-       ln -s busybox initramfs/sh
+        cp /bin/busybox initramfs/busybox
+        ln -s busybox initramfs/sh
 
-       mkdir -p iso_root/boot
-       (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz
+        mkdir -p iso_root/boot
+        (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO con GRUB EFI
       run: |
-       mkdir -p iso_root/boot/grub
-       cp system/boot/Image iso_root/boot/Image
-       cat > iso_root/boot/grub/grub.cfg <<EOF
-       set default=0
-       set timeout=5
-       menuentry "CultraCore ARM64" {
-         linux /boot/Image root=/dev/ram0 rdinit=/init console=ttyAMA0
-         initrd /boot/initramfs.cpio.gz
-       }
-       EOF
+        mkdir -p iso_root/boot/grub
+        cp system/boot/Image iso_root/boot/Image
+        cat > iso_root/boot/grub/grub.cfg <<EOF
+        set default=0
+        set timeout=5
+        menuentry "CultraCore ARM64" {
+          linux /boot/Image root=/dev/ram0 rdinit=/init console=ttyAMA0
+          initrd /boot/initramfs.cpio.gz
+        }
+        EOF
 
     - name: Crear imagen ISO ARM64
       run: |

@@ -15,7 +15,7 @@ jobs:
       run: |
        sudo apt update
        sudo apt install -y build-essential gcc-aarch64-linux-gnu \
-        genisoimage grub-efi-arm64 grub-common grub-pc-bin \
+        genisoimage grub-common grub-pc-bin grub-efi-arm64-cross \
         libncurses-dev flex bison libssl-dev libelf-dev \
         cpio gzip curl busybox-static
 

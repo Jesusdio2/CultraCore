@@ -17,39 +17,32 @@ jobs:
         sudo apt install -y build-essential gcc-aarch64-linux-gnu \
           genisoimage grub2-common grub-pc-bin xorriso mtools \
           libncurses-dev flex bison libssl-dev libelf-dev \
-          cpio gzip curl busybox-static libsdl2-dev
+          cpio gzip curl busybox-static
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |
         mkdir -p system/boot
-        curl -L https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/Image \
+        curl -L https://github.com/Jesusdio2/CultraCoreKernel/releases/download/Dev0/Image \
           -o system/boot/Image
 
-    - name: Compilar binarios (init, shell, bootanim, installer_gui)
+    - name: Compilar binarios (init, shell, bootanim_fb)
       run: |
         mkdir -p system/bin
         aarch64-linux-gnu-gcc -static src/init.c -o system/bin/init
         aarch64-linux-gnu-gcc -static src/shell.c -o system/bin/shell
-        # Compilar dinámico con SDL2 (más seguro en ARM64)
-        aarch64-linux-gnu-gcc src/bootanim.c -o system/bin/bootanim -lSDL2
-        aarch64-linux-gnu-gcc src/installer_gui.c -o system/bin/installer_gui -lSDL2
+        aarch64-linux-gnu-gcc -static src/bootanim_fb.c -o system/bin/bootanim_fb
 
     - name: Generar initramfs
       run: |
-        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev,lib}
+        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
         cp system/bin/init initramfs/init
         cp system/bin/shell initramfs/bin/shell
-        cp system/bin/bootanim initramfs/bin/bootanim
-        cp system/bin/installer_gui initramfs/bin/installer_gui
+        cp system/bin/bootanim_fb initramfs/bin/bootanim_fb
         chmod +x initramfs/init
 
         # Busybox básico
-        cp /bin/busybox initramfs/bin/busybox
+        cp /bin/busybox initramfs/busybox
         ln -s busybox initramfs/sh
-
-        # Copiar librerías dinámicas necesarias para SDL2
-        ldd system/bin/bootanim | awk '/=> \//{print $3}' | xargs -r -I{} cp -v {} initramfs/lib/ || true
-        ldd system/bin/installer_gui | awk '/=> \//{print $3}' | xargs -r -I{} cp -v {} initramfs/lib/ || true
 
         mkdir -p iso_root/boot
         (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz

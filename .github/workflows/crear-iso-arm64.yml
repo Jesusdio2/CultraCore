@@ -15,9 +15,9 @@ jobs:
       run: |
        sudo apt update
        sudo apt install -y build-essential gcc-aarch64-linux-gnu \
-        genisoimage grub-common grub-pc-bin grub-efi-arm64-cross \
+        genisoimage grub2-common grub-pc-bin \
         libncurses-dev flex bison libssl-dev libelf-dev \
-        cpio gzip curl busybox-static
+        cpio gzip curl busybox-static xorriso
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |

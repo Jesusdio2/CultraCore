@@ -16,15 +16,29 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential libncurses-dev flex bison libssl-dev libelf-dev bc cpio gcc-aarch64-linux-gnu
+        sudo apt install -y build-essential libncurses-dev flex bison \
+          libssl-dev libelf-dev bc cpio gcc-aarch64-linux-gnu
 
     - name: Configurar kernel ARM64
       run: |
         make ARCH=arm64 defconfig
+        # Opciones necesarias para initramfs y gráficos en QEMU
         scripts/config --file .config --enable CONFIG_BLK_DEV_INITRD
         scripts/config --file .config --enable CONFIG_RD_GZIP
         scripts/config --file .config --enable CONFIG_DEVTMPFS
         scripts/config --file .config --enable CONFIG_DEVTMPFS_MOUNT
+        # Consola y framebuffer
+        scripts/config --file .config --enable CONFIG_FB
+        scripts/config --file .config --enable CONFIG_VT
+        scripts/config --file .config --enable CONFIG_VT_CONSOLE
+        # DRM y GPU virtual
+        scripts/config --file .config --enable CONFIG_DRM
+        scripts/config --file .config --enable CONFIG_DRM_VIRTIO_GPU
+        # UART de QEMU (ttyAMA0)
+        scripts/config --file .config --enable CONFIG_SERIAL_AMBA_PL011
+        scripts/config --file .config --enable CONFIG_SERIAL_AMBA_PL011_CONSOLE
+        # Reaplicar configuración
+        yes "" | make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
 
     - name: Compilar kernel ARM64
       run: |

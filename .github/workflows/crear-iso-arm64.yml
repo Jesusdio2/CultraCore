@@ -13,10 +13,11 @@ jobs:
 
     - name: Instalar dependencias
       run: |
-        sudo apt update
-        sudo apt install -y build-essential gcc-aarch64-linux-gnu \
-          genisoimage grub-efi-arm64-bin libncurses-dev flex bison \
-          libssl-dev libelf-dev cpio gzip curl busybox-static
+       sudo apt update
+       sudo apt install -y build-essential gcc-aarch64-linux-gnu \
+        genisoimage grub-efi-arm64 grub-common grub-pc-bin \
+        libncurses-dev flex bison libssl-dev libelf-dev \
+        cpio gzip curl busybox-static
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |

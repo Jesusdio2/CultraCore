@@ -34,30 +34,30 @@ jobs:
 
     - name: Generar initramfs
       run: |
-        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
-        cp system/bin/init initramfs/bin/init
-        cp system/bin/shell initramfs/bin/shell
-        cp system/bin/bootanim initramfs/bin/bootanim
-        chmod +x initramfs/bin/init
+       mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
+       cp system/bin/init initramfs/init
+       cp system/bin/shell initramfs/bin/shell
+       cp system/bin/bootanim initramfs/bin/bootanim
+       chmod +x initramfs/init
 
-        cp /bin/busybox initramfs/bin/busybox
-        ln -s /bin/busybox initramfs/bin/sh
+       cp /bin/busybox initramfs/busybox
+       ln -s busybox initramfs/sh
 
-        mkdir -p iso_root/boot
-        (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz
+       mkdir -p iso_root/boot
+       (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz
 
     - name: Crear estructura ISO con GRUB EFI
       run: |
-        mkdir -p iso_root/boot/grub
-        cp system/boot/Image iso_root/boot/Image
-        cat > iso_root/boot/grub/grub.cfg <<EOF
-        set default=0
-        set timeout=5
-        menuentry "CultraCore ARM64" {
-          linux /boot/Image initrd=/boot/initramfs.cpio.gz rdinit=/bin/init console=ttyAMA0
-          initrd /boot/initramfs.cpio.gz
-        }
-        EOF
+       mkdir -p iso_root/boot/grub
+       cp system/boot/Image iso_root/boot/Image
+       cat > iso_root/boot/grub/grub.cfg <<EOF
+       set default=0
+       set timeout=5
+       menuentry "CultraCore ARM64" {
+         linux /boot/Image root=/dev/ram0 rdinit=/init console=ttyAMA0
+         initrd /boot/initramfs.cpio.gz
+       }
+       EOF
 
     - name: Crear imagen ISO ARM64
       run: |

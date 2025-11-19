@@ -4,15 +4,25 @@
 #include <sys/mman.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>   // <--- importante para ioctl()
 
 int main() {
     int fb = open("/dev/fb0", O_RDWR);
     if (fb < 0) { perror("open fb0"); return 1; }
 
     struct fb_var_screeninfo vinfo;
-    ioctl(fb, FBIOGET_VSCREENINFO, &vinfo);
+    struct fb_fix_screeninfo finfo;
 
-    long screensize = vinfo.yres_virtual * vinfo.xres_virtual * vinfo.bits_per_pixel / 8;
+    if (ioctl(fb, FBIOGET_VSCREENINFO, &vinfo)) {
+        perror("FBIOGET_VSCREENINFO");
+        return 1;
+    }
+    if (ioctl(fb, FBIOGET_FSCREENINFO, &finfo)) {
+        perror("FBIOGET_FSCREENINFO");
+        return 1;
+    }
+
+    long screensize = vinfo.yres_virtual * finfo.line_length;
     char *fbp = (char*) mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
 
     if ((intptr_t)fbp == -1) { perror("mmap"); return 1; }
@@ -29,7 +39,7 @@ int main() {
     for (int y = y_offset; y < y_offset + bar_height; y++) {
         for (int x = x_offset; x < x_offset + bar_width; x++) {
             long location = (x + vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
-                            (y + vinfo.yoffset) * vinfo.line_length;
+                            (y + vinfo.yoffset) * finfo.line_length;
             // Azul (BGRA)
             fbp[location] = 255;      // Blue
             fbp[location+1] = 0;      // Green

@@ -30,20 +30,26 @@ jobs:
         mkdir -p system/bin
         aarch64-linux-gnu-gcc -static src/init.c -o system/bin/init
         aarch64-linux-gnu-gcc -static src/shell.c -o system/bin/shell
-        aarch64-linux-gnu-gcc -static src/bootanim.c -o system/bin/bootanim -lSDL2
-        aarch64-linux-gnu-gcc -static src/installer_gui.c -o system/bin/installer_gui -lSDL2
+        # Compilar dinámico con SDL2 (más seguro en ARM64)
+        aarch64-linux-gnu-gcc src/bootanim.c -o system/bin/bootanim -lSDL2
+        aarch64-linux-gnu-gcc src/installer_gui.c -o system/bin/installer_gui -lSDL2
 
     - name: Generar initramfs
       run: |
-        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev}
+        mkdir -p initramfs/{bin,sbin,etc,proc,sys,dev,lib}
         cp system/bin/init initramfs/init
         cp system/bin/shell initramfs/bin/shell
         cp system/bin/bootanim initramfs/bin/bootanim
         cp system/bin/installer_gui initramfs/bin/installer_gui
         chmod +x initramfs/init
 
-        cp /bin/busybox initramfs/busybox
+        # Busybox básico
+        cp /bin/busybox initramfs/bin/busybox
         ln -s busybox initramfs/sh
+
+        # Copiar librerías dinámicas necesarias para SDL2
+        ldd system/bin/bootanim | awk '/=> \//{print $3}' | xargs -r -I{} cp -v {} initramfs/lib/ || true
+        ldd system/bin/installer_gui | awk '/=> \//{print $3}' | xargs -r -I{} cp -v {} initramfs/lib/ || true
 
         mkdir -p iso_root/boot
         (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz

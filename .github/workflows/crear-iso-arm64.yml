@@ -18,12 +18,11 @@ jobs:
           genisoimage grub-efi-arm64-bin libncurses-dev flex bison \
           libssl-dev libelf-dev cpio gzip curl busybox-static
 
-    - name: Compilar kernel ARM64
+    - name: Descargar kernel ARM64 (Image) desde Release
       run: |
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
         mkdir -p system/boot
-        cp arch/arm64/boot/Image system/boot/Image
+        curl -L https://github.com/Jesusdio2/CultraCore/releases/download/Dev1/Image \
+          -o system/boot/Image
 
     - name: Compilar binarios (init, shell, bootanim)
       run: |

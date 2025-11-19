@@ -16,20 +16,19 @@ int main() {
 
     printf("CultraCore is loading files...\n");
 
-    // Opcional: si incluyes udev en el PE, arráncalo aquí
-    // run("/sbin/udevd --daemon"); run("udevadm trigger"); run("udevadm settle");
-
-    // Animación (opcional, ya en RAM)
+    // Animación opcional
     run("/bin/bootanim");
 
-    // Lanzar instalador gráfico; si falla, abrir shell
+    // Intentar instalador gráfico
     int rc = run("/bin/installer_gui");
     if (rc != 0) {
         fprintf(stderr, "[init] installer_gui falló (rc=%d). Abriendo shell.\n", rc);
+    }
+
+    // Mantener siempre una shell viva
+    while (1) {
         run("/bin/shell");
     }
 
-    // Mantener sesión si el instalador termina
-    run("/bin/shell");
-    return 0;
+    return 0; // nunca se alcanza
 }

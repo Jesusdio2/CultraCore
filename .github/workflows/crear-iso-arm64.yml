@@ -13,11 +13,13 @@ jobs:
 
     - name: Instalar dependencias
       run: |
+        sudo dpkg --add-architecture arm64
         sudo apt update
         sudo apt install -y build-essential gcc-aarch64-linux-gnu \
           genisoimage grub2-common grub-pc-bin xorriso mtools \
           libncurses-dev flex bison libssl-dev libelf-dev \
-          cpio gzip curl busybox-static libsdl2-dev
+          cpio gzip curl busybox-static \
+          libsdl2-dev:arm64 libsdl2-2.0-0:arm64
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |

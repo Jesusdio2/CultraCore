@@ -17,7 +17,7 @@ jobs:
         sudo apt install -y build-essential gcc-aarch64-linux-gnu \
           genisoimage grub2-common grub-pc-bin xorriso mtools \
           libncurses-dev flex bison libssl-dev libelf-dev \
-          cpio gzip curl busybox-static
+          cpio gzip curl busybox-static libsdl2-dev
 
     - name: Descargar kernel ARM64 (Image) desde Release
       run: |
@@ -25,12 +25,13 @@ jobs:
         curl -L https://github.com/Jesusdio2/CultraCoreKernel/releases/download/Dev0/Image \
           -o system/boot/Image
 
-    - name: Compilar binarios (init, shell, bootanim_fb)
+    - name: Compilar binarios (init, shell, bootanim_fb, installer_gui)
       run: |
         mkdir -p system/bin
         aarch64-linux-gnu-gcc -static src/init.c -o system/bin/init
         aarch64-linux-gnu-gcc -static src/shell.c -o system/bin/shell
         aarch64-linux-gnu-gcc -static src/bootanim_fb.c -o system/bin/bootanim_fb
+        aarch64-linux-gnu-gcc -static src/installer_gui.c -o system/bin/installer_gui -lSDL2
 
     - name: Generar initramfs
       run: |
@@ -38,11 +39,14 @@ jobs:
         cp system/bin/init initramfs/init
         cp system/bin/shell initramfs/bin/shell
         cp system/bin/bootanim_fb initramfs/bin/bootanim_fb
-        chmod +x initramfs/init
+        cp system/bin/installer_gui initramfs/bin/installer_gui
+        chmod +x initramfs/init initramfs/bin/*
 
-        # Busybox básico
-        cp /bin/busybox initramfs/busybox
-        ln -s busybox initramfs/sh
+        # Busybox básico en /bin
+        cp /bin/busybox initramfs/bin/busybox
+        ln -s busybox initramfs/bin/sh
+        ln -s busybox initramfs/bin/echo
+        ln -s busybox initramfs/bin/ls
 
         mkdir -p iso_root/boot
         (cd initramfs && find . | cpio -H newc -o) | gzip > iso_root/boot/initramfs.cpio.gz

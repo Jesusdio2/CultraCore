@@ -1,11 +1,11 @@
-name: Build CultraCore Kernel
+name: Build CultraCore Kernel x86_64
 
 on:
   workflow_dispatch:
 
 jobs:
   build-kernel:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04   # más estable para toolchains de kernel
 
     steps:
     - name: Clonar CultraCoreKernel
@@ -16,30 +16,36 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt update
-        sudo apt install -y build-essential libncurses-dev flex bison libssl-dev libelf-dev bc cpio
+        sudo apt install -y build-essential libncurses-dev flex bison libssl-dev \
+          libelf-dev bc cpio xz-utils tar wget git pkg-config
 
     - name: Configurar kernel
       run: |
-        # Usa configuración por defecto para x86_64
         make defconfig
-        # Opcional: activar soporte de initramfs gzip
+        # Activar soporte de initramfs gzip y devtmpfs
         scripts/config --enable CONFIG_BLK_DEV_INITRD
         scripts/config --enable CONFIG_RD_GZIP
         scripts/config --enable CONFIG_DEVTMPFS
         scripts/config --enable CONFIG_DEVTMPFS_MOUNT
         # Puedes añadir más flags según lo que necesites
 
+    - name: Limpiar antes de compilar
+      run: |
+        make mrproper
+
     - name: Compilar kernel
       run: |
         make -j$(nproc)
 
-    - name: Guardar bzImage
+    - name: Guardar artefactos
       run: |
         mkdir -p artifacts
         cp arch/x86/boot/bzImage artifacts/bzImage
+        cp System.map artifacts/System.map
+        cp .config artifacts/kernel.config
 
-    - name: Subir artefacto bzImage
+    - name: Subir artefactos
       uses: actions/upload-artifact@v4
       with:
-        name: CultraCoreKernel-bzImage
-        path: artifacts/bzImage
+        name: CultraCoreKernel-x86_64
+        path: artifacts
